@@ -17,7 +17,7 @@ make_file_name("20181128_0739")
 read_bt_files <- function(date_string) {
   
   fi_name <- make_file_name(date_string)
-  run_date <- strptime(as.character(gsub("_", "", date_string)), format = "%Y%m%d%H%M")
+  run_date <- as.POSIXct(strptime(as.character(gsub("_", "", date_string)), format = "%Y%m%d%H%M"))
 
   temp_bt <<- read.csv(file = fi_name)
   temp_bt$RunDate = run_date
@@ -25,7 +25,9 @@ read_bt_files <- function(date_string) {
   return(temp_bt)
 }
 
-
+#for testing
+#date_string <- "20181128_0739"
+#ttt <- as.POSIXct(strptime(as.character(gsub("_", "", date_string)), format = "%Y%m%d%H%M"))
 
 read_bt_files("20181128_0739")
 
@@ -43,6 +45,7 @@ make_massive_table <- function(summary_table){
   # need to sort out date conversion later this is a pain
   #M$AMZ_date = as.Date(as.character(summary_table$AMZ_date[1]), format = '%m/%d/%Y %h:%m')
   M$AMZ_date <- as.character(summary_table$AMZ_date[1])
+  M$total_loading <- sum(M$Volume)
   
 
   for(i in 2:length(summary_table$File_num)){
@@ -54,6 +57,7 @@ make_massive_table <- function(summary_table){
     # need to sort out date conversion later this is a pain
     #M$AMZ_date = as.Date(as.character(summary_table$AMZ_date[1]), format = '%m/%d/%Y %h:%m')
     t$AMZ_date <- as.character(summary_table$AMZ_date[i])
+    t$total_loading <- sum(t$Volume)
     Mnew <- rbind(M, t)
     M <- Mnew
     print(i)
@@ -63,3 +67,14 @@ make_massive_table <- function(summary_table){
 }
 
 make_massive_table(sum_table)
+
+M_t_IS_2punch <- M_t %>% 
+  filter(Library.Name == "amzi0503_b", Filter_punches == 2)
+
+ggplot(M_t_IS_2punch, aes(x = Compound.Name, y = Volume))+
+  geom_boxplot() +
+  coord_flip()
+
+ggplot(M_t_IS_2punch, aes(x = total_loading, y = Volume, color = Compound.Name))+
+  geom_line()
+  
