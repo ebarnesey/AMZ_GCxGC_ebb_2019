@@ -87,6 +87,47 @@ ggplot(M_t_IS_2punch, aes(x = Compound.Name, y = Volume))+
 ggplot(M_t_IS_2punch, aes(x = total_loading, y = Volume, color = Compound.Name))+
   geom_line()
 
+
+M_t_IS_multi <- M_t %>%
+  filter(Library.Name == "amzi0503_b", Category == "sample")
+
+ggplot(M_t_IS_multi, aes(x = Compound.Name, y = Volume))+
+  geom_boxplot() +
+  coord_flip()
+
+ggplot(M_t_IS_multi, aes(x = Loading, y = Volume, col = Compound.Name)) + 
+  geom_point()+
+  geom_smooth()
+
+checkr2withloading <- function(Comp_name) {
+  new_table <- M_t %>% 
+    filter(Library.Name == "amzi0503_b", Category == "sample", Compound.Name == Comp_name)  
+  
+  loadcheck.lm = lm(Volume ~ Loading, data=new_table)
+  return(summary(loadcheck.lm)$r.squared) 
+}
+
+I_S <- read.csv(file = "C:\\Users\\GoldsteinGroup\\Desktop\\Research\\GoAmazon_filters\\blob_tables\\Internal_Standards_included.csv")
+
+I_S$Loading_r2 <- 0
+
+for (i in 1:length(I_S$IS)){
+  name_temp <- as.character(I_S$IS[i])
+  temp_r2 <- checkr2withloading(name_temp)
+  I_S$Loading_r2[i] <- temp_r2
+}
+
+I_S %>% arrange(desc(Loading_r2)) %>% 
+  ggplot(aes(x = IS, y = Loading_r2))+
+  geom_col()+
+  coord_flip()
+
+arranged_IS <- I_S %>% arrange(desc(Loading_r2))
+
+arrange_IS %>% ggplot(aes(x = IS, y = Loading_r2))+
+  geom_col()+
+  coord_flip()
+
 # Determine_loading <- function(Blobtable_a, new_btname) {
 #   temp <- Blobtable_a %>% 
 #     filter(Library != "amzi0503_b") %>% 
